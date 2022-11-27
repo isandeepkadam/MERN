@@ -1,23 +1,23 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const asyncHandler = require('express-async-handler');
+// const asyncHandler = require('express-async-handler');
 const User = require('../models/userModel');
 
 //@desc   Register new user
 //@route  POST / api/user
 //@access Public
-const registerUser = asyncHandler(async (req, res) => {
+const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
     res.status(400);
-    throw new Error('Please add all fields');
+    res.send('Please add all fields');
   }
 
   // Check if user exists
   const userExists = await User.findOne({ email });
   if (userExists) {
     res.status(400);
-    throw new Error('User Already Exists');
+    res.send('User Already Exists');
   }
 
   //Hash Password
@@ -40,14 +40,14 @@ const registerUser = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(400);
-    throw new Error('Invalid User data');
+    res.send('Invalid User data');
   }
-}); // wrapped in asyncHandler to handle exceptions
+}; // wrapped in asyncHandler to handle exceptions
 
 //@desc   Authenticate new user
 //@route  POST / api/users/login
 //@access Public
-const loginUser = asyncHandler(async (req, res) => {
+const loginUser = async (req, res) => {
   const { email, password } = req.body;
   // check for user email
   const user = await User.findOne({ email });
@@ -61,18 +61,21 @@ const loginUser = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(400);
-    throw new Error('Invalid Credentials');
+    res.send('Invalid Credentials');
   }
-});
+};
 
 //@desc   Get user Data
 //@route  GET /api/users/me
 //@access Private
-const getMe = asyncHandler(async (req, res) => {
-  // console.log(req.headers.authorization);
-
-  res.json({ message: 'User Data Display' });
-});
+const getMe = async (req, res) => {
+  const { _id, name, email } = await User.findById(req.user.id);
+  res.status(201).json({
+    _id: _id,
+    name: name,
+    email: email,
+  });
+};
 
 //Generate JWT
 const generateToken = (id) => {

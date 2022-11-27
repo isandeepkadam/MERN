@@ -1,8 +1,7 @@
 const jwt = require('jsonwebtoken');
-const asyncHandler = require('express');
 const User = require('../models/userModel');
 
-const protect = asyncHandler(async (req, res, next) => {
+const protect = async (req, res, next) => {
   let token;
   if (
     req.headers.authorization &&
@@ -19,16 +18,15 @@ const protect = asyncHandler(async (req, res, next) => {
       req.user = await User.findById(decoded.id).select('-password'); // Mongoose to find User with decoded ID except password
       next();
     } catch (error) {
-      console.log(error);
       res.status(401);
-      throw new Error('Not Authorized');
+      res.send('Incorrect Token');
     }
   }
 
   if (!token) {
     res.status(401);
-    throw new Error('Not Authorized, no Token');
+    res.send('Not Authorized, no Token');
   }
-});
+};
 
 module.exports = { protect };
